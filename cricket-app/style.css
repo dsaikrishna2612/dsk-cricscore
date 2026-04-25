@@ -1,42 +1,50 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #0b6623, #1faa59);
-  color: white;
-  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1d976c, #93f9b9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   margin: 0;
 }
 
 .card {
   background: white;
-  color: black;
-  padding: 20px;
-  margin: 40px auto;
-  border-radius: 15px;
-  width: 90%;
-  max-width: 400px;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  width: 320px;
+  text-align: center;
+}
+
+h2 {
+  color: #1d976c;
 }
 
 input {
-  width: 90%;
+  width: 100%;
   padding: 12px;
-  margin: 10px;
-  border-radius: 8px;
+  margin: 10px 0;
+  border-radius: 10px;
   border: 1px solid #ccc;
+  font-size: 16px;
 }
 
 button {
+  width: 100%;
   padding: 12px;
-  margin: 6px;
+  margin-top: 10px;
+  border-radius: 10px;
   border: none;
-  border-radius: 8px;
-  background: #ffcc00;
+  background: #1d976c;
+  color: white;
+  font-size: 16px;
   font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-#score {
-  font-size: 42px;
-}
-
-.buttons {
-  margin-top: 15px;
+button:hover {
+  background: #159957;
+  transform: scale(1.05);
 }
