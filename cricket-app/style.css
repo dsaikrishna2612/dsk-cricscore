@@ -1,25 +1,42 @@
 body {
-  font-family: Arial;
-  background: #0b6623;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0b6623, #1faa59);
   color: white;
   text-align: center;
+  margin: 0;
 }
 
 .card {
   background: white;
   color: black;
   padding: 20px;
-  margin: 20px;
-  border-radius: 10px;
-}
-
-input, button {
-  display: block;
+  margin: 40px auto;
+  border-radius: 15px;
   width: 90%;
-  margin: 10px auto;
-  padding: 10px;
+  max-width: 400px;
 }
 
-.buttons button {
-  width: 45%;
+input {
+  width: 90%;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 12px;
+  margin: 6px;
+  border: none;
+  border-radius: 8px;
+  background: #ffcc00;
+  font-weight: bold;
+}
+
+#score {
+  font-size: 42px;
+}
+
+.buttons {
+  margin-top: 15px;
 }

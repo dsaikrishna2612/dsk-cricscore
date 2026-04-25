@@ -9,6 +9,7 @@
 <h2 id="teams"></h2>
 <h1 id="score"></h1>
 <p id="overs"></p>
+<p id="stats"></p>
 <h3 id="players"></h3>
 
 <div id="history"></div>
@@ -20,10 +21,11 @@
   <button onclick="addRun(6)">+6</button>
 
   <button onclick="wicket('bowled')">Bowled</button>
-  <button onclick="wicket('catchout')">Catchout</button>
+  <button onclick="wicket('caught')">Caught</button>
   <button onclick="wicket('runout')">Run Out</button>
 
   <button onclick="undo()">Undo</button>
+  <button onclick="endInnings()">End Innings</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>

@@ -1,23 +1,12 @@
 const SUPABASE_URL = "https://kcpesymqnjahcazdozjv.supabase.co";
-const SUPABASE_KEY = "sb_publishable_k90Rr5o4zcJCmM6ppocI_w_ADTjDyp8";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcGVzeW1xbmphaGNhemRvemp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwOTg1MTQsImV4cCI6MjA5MjY3NDUxNH0.-Vf4PFcr-rMxL7qAsHGz481UEwgDfDnRMmWQiMjv7iA";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let current = {};
 
-class Match {
-  constructor(data) {
-    Object.assign(this, data);
-  }
-
-  getOvers() {
-    return Math.floor(this.balls / 6) + "." + (this.balls % 6);
-  }
-}
-
 function getMatchId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
+  return new URLSearchParams(window.location.search).get("id");
 }
 
 // CREATE MATCH
@@ -26,25 +15,28 @@ async function createMatch() {
 
   const striker = { name: prompt("Striker name"), runs: 0, balls: 0 };
   const non_striker = { name: prompt("Non-Striker name"), runs: 0, balls: 0 };
-  const bowler = { name: prompt("Bowler name"), balls: 0, runs: 0 };
 
   const data = {
     id: matchId,
     teamA: teamA.value,
     teamB: teamB.value,
     totalOvers: parseInt(overs.value),
-    target: parseInt(target.value) || null,
+    runs: 0,
+    wickets: 0,
+    balls: 0,
+    history: [],
+    innings: 1,
+    target: null,
     striker,
-    non_striker,
-    bowler
+    non_striker
   };
 
   await supabase.from("matches").insert([data]);
 
-  window.location.href = `/dsk-cricscore/cricket-app/scorer.html?id=${matchId}`;
+  window.location.href = `scorer.html?id=${matchId}`;
 }
 
-// LOAD MATCH + REALTIME
+// LOAD MATCH
 async function loadMatch() {
   const matchId = getMatchId();
   if (!matchId) return;
@@ -57,8 +49,7 @@ async function loadMatch() {
 
   updateUI(data);
 
-  supabase
-    .channel("match-" + matchId)
+  supabase.channel("match")
     .on("postgres_changes", {
       event: "UPDATE",
       schema: "public",
@@ -74,99 +65,58 @@ async function loadMatch() {
 function updateUI(data) {
   current = data;
 
-  const match = new Match(data);
-
   document.getElementById("teams").innerText =
-    match.teamA + " vs " + match.teamB;
+    `${data.teamA} vs ${data.teamB}`;
 
   document.getElementById("score").innerText =
-    match.runs + "/" + match.wickets;
+    `${data.runs}/${data.wickets}`;
 
   document.getElementById("overs").innerText =
-    match.getOvers() + "/" + match.totalOvers;
+    `${Math.floor(data.balls / 6)}.${data.balls % 6}/${data.totalOvers}`;
 
   document.getElementById("players").innerText =
-    `${current.striker.name} (${current.striker.runs})* | ${current.non_striker.name} (${current.non_striker.runs})`;
+    `${data.striker.name} (${data.striker.runs})* | ${data.non_striker.name} (${data.non_striker.runs})`;
 
   document.getElementById("history").innerText =
-    current.history.map(formatBall).join("  ");
+    data.history.join("  ");
+
+  document.getElementById("stats").innerText =
+    `CRR: ${calculateCRR()} | RRR: ${calculateRRR()}`;
 }
 
-// FORMAT BALL
-function formatBall(ball) {
-  if (typeof ball === "number") return ball;
-
-  if (ball.type === "bowled") return `bowled ${ball.batsman}`;
-  if (ball.type === "catchout") return `Catchout ${ball.batsman}`;
-  if (ball.type === "runout") return `RO ${ball.batsman}`;
-
-  return "";
-}
-
-// UPDATE MATCH
-async function updateMatch(update) {
-  const matchId = getMatchId();
-
-  const { data } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("id", matchId)
-    .single();
-
-  let updated = {
-    ...data,
-    ...update,
-    updated_at: new Date()
-  };
-
-  await supabase.from("matches").update(updated).eq("id", matchId);
-}
-
-// RUN LOGIC
+// RUN
 function addRun(run) {
   let striker = { ...current.striker };
 
   striker.runs += run;
   striker.balls += 1;
 
-  let newBalls = current.balls + 1;
+  let balls = current.balls + 1;
 
-  let newStriker = striker;
-  let newNonStriker = current.non_striker;
+  let s = striker;
+  let ns = current.non_striker;
 
-  if (run % 2 === 1) {
-    [newStriker, newNonStriker] = [newNonStriker, newStriker];
-  }
-
-  if (newBalls % 6 === 0) {
-    [newStriker, newNonStriker] = [newNonStriker, newStriker];
-  }
-
-  let newHistory = [...current.history, run];
+  if (run % 2 === 1) [s, ns] = [ns, s];
+  if (balls % 6 === 0) [s, ns] = [ns, s];
 
   updateMatch({
     runs: current.runs + run,
-    balls: newBalls,
-    striker: newStriker,
-    non_striker: newNonStriker,
-    history: newHistory
+    balls,
+    striker: s,
+    non_striker: ns,
+    history: [...current.history, run]
   });
 }
 
 // WICKET
 function wicket(type) {
-  const newName = prompt("New batsman name");
-
-  let newHistory = [...current.history, {
-    type,
-    batsman: current.striker.name
-  }];
+  const newName = prompt("New batsman");
 
   updateMatch({
     wickets: current.wickets + 1,
     balls: current.balls + 1,
     striker: { name: newName, runs: 0, balls: 0 },
-    history: newHistory
+    history: [...current.history, "W"]
   });
 }
 
@@ -174,26 +124,63 @@ function wicket(type) {
 function undo() {
   if (!current.history.length) return;
 
-  let last = current.history[current.history.length - 1];
-  let newHistory = current.history.slice(0, -1);
+  let last = current.history.slice(-1)[0];
+  let history = current.history.slice(0, -1);
 
-  let updated = {
-    history: newHistory,
-    runs: current.runs,
-    wickets: current.wickets,
-    balls: current.balls
-  };
+  let runs = current.runs;
+  let balls = current.balls;
+  let wickets = current.wickets;
 
   if (typeof last === "number") {
-    updated.runs -= last;
-    updated.balls -= 1;
+    runs -= last;
+    balls -= 1;
   } else {
-    updated.wickets -= 1;
-    updated.balls -= 1;
+    wickets -= 1;
+    balls -= 1;
   }
 
-  updateMatch(updated);
+  updateMatch({ runs, balls, wickets, history });
 }
 
-// INIT
+// END INNINGS
+function endInnings() {
+  if (current.innings === 1) {
+    updateMatch({
+      innings: 2,
+      target: current.runs + 1,
+      runs: 0,
+      wickets: 0,
+      balls: 0,
+      history: []
+    });
+    alert("Second innings started!");
+  }
+}
+
+// UPDATE DB
+async function updateMatch(update) {
+  const matchId = getMatchId();
+
+  await supabase.from("matches")
+    .update(update)
+    .eq("id", matchId);
+}
+
+// CALCULATIONS
+function calculateCRR() {
+  if (current.balls === 0) return 0;
+  return (current.runs / (current.balls / 6)).toFixed(2);
+}
+
+function calculateRRR() {
+  if (!current.target) return "-";
+
+  let ballsLeft = current.totalOvers * 6 - current.balls;
+  let runsNeeded = current.target - current.runs;
+
+  if (ballsLeft <= 0) return "-";
+
+  return (runsNeeded / (ballsLeft / 6)).toFixed(2);
+}
+
 loadMatch();
