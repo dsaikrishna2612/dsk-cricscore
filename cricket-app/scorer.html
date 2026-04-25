@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scorer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h2 id="teams"></h2>
+<h1 id="score"></h1>
+<p id="overs"></p>
+<h3 id="players"></h3>
+
+<div id="history"></div>
+
+<div class="buttons">
+  <button onclick="addRun(1)">+1</button>
+  <button onclick="addRun(2)">+2</button>
+  <button onclick="addRun(4)">+4</button>
+  <button onclick="addRun(6)">+6</button>
+
+  <button onclick="wicket('bowled')">Bowled</button>
+  <button onclick="wicket('caught')">Caught</button>
+  <button onclick="wicket('runout')">Run Out</button>
+
+  <button onclick="undo()">Undo</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="app.js"></script>
+</body>
+</html>
