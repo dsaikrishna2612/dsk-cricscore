@@ -41,7 +41,7 @@ async function createMatch() {
 
   await supabase.from("matches").insert([data]);
 
-  window.location.href = `scorer.html?id=${matchId}`;
+  window.location.href = `/dsk-cricscore/cricket-app/scorer.html?id=${matchId}`;
 }
 
 // LOAD MATCH + REALTIME
@@ -96,8 +96,8 @@ function updateUI(data) {
 function formatBall(ball) {
   if (typeof ball === "number") return ball;
 
-  if (ball.type === "bowled") return `B ${ball.batsman}`;
-  if (ball.type === "caught") return `C ${ball.batsman}`;
+  if (ball.type === "bowled") return `bowled ${ball.batsman}`;
+  if (ball.type === "catchout") return `Catchout ${ball.batsman}`;
   if (ball.type === "runout") return `RO ${ball.batsman}`;
 
   return "";
